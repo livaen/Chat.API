@@ -1,34 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Chat.API.Areas.Authentication.Helpers;
+using Chat.API.Extensions;
+using Chat.API.Hubs;
+using Chat.API.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Chat.API
 {
     public class Startup
     {
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices(IServiceCollection services)
+        public IConfigurationRoot Configuration { get; }
+        private IContainer ApplicationContainer { get; set; }
+
+        public Startup(IHostingEnvironment env)
         {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables();
+
+            Configuration = builder.Build();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<IConfiguration>(Configuration);
+
+            var jwtSettings = Configuration.GetSettings<JwtSettings>();
+            
+            services.AddCors( o => o.AddPolicy("CorsPolicy", builder => {
+                builder
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowAnyOrigin()
+                .AllowCredentials();
+            }));
+            services.AddScoped<IJwtHandler, JwtHandler>();
+            services.AddSignalR();
+            services.AddMvc();
+        }
+
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseCors("CorsPolicy");
 
-            app.Run(async (context) =>
-            {
-                await context.Response.WriteAsync("Hello World!");
+            app.UseSignalR(routes => {
+                routes.MapHub<ChatHub>("/chat");
             });
+    
+
+            app.UseMvc();
         }
     }
 }
