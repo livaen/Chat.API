@@ -2,18 +2,22 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Chat.API.Areas.Authentication.Helpers;
 using Chat.API.Data.DAL;
+using Chat.API.Data.Repositories;
 using Chat.API.Extensions;
 using Chat.API.Hubs;
 using Chat.API.Settings;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Chat.API
 {
@@ -37,7 +41,19 @@ namespace Chat.API
             services.AddSingleton<IConfiguration>(Configuration);
 
             var jwtSettings = Configuration.GetSettings<JwtSettings>();
-            
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuer = jwtSettings.Issuer,
+                        ValidateAudience = false,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+                        SaveSigninToken = true
+                    };
+                });
+
             services.AddCors( o => o.AddPolicy("CorsPolicy", builder => {
                 builder
                 .AllowAnyMethod()
@@ -45,7 +61,10 @@ namespace Chat.API
                 .AllowAnyOrigin()
                 .AllowCredentials();
             }));
+
+            services.AddScoped<IEncrypter, Encrypter>();
             services.AddScoped<IJwtHandler, JwtHandler>();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddSignalR();
             services.AddMvc();
 
@@ -61,11 +80,11 @@ namespace Chat.API
                 app.UseDeveloperExceptionPage();
             }
             app.UseCors("CorsPolicy");
+            app.UseAuthentication();
 
             app.UseSignalR(routes => {
                 routes.MapHub<ChatHub>("/chat");
             });
-    
 
             app.UseMvc();
         }

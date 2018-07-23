@@ -7,5 +7,15 @@ namespace Chat.API.Models
         public string PasswordHash {get; private set;}
         public string PasswordSalt {get; private set;}
         public string Email {get; private set;}
+
+        private User() { }
+
+        public User(string username, string passwordHash, string passwordSalt, string email)
+        {
+            Username = username;
+            PasswordHash = passwordHash;
+            PasswordSalt = passwordSalt;
+            Email = email;
+        }
     }
 }
