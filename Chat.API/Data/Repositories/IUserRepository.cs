@@ -9,5 +9,6 @@ namespace Chat.API.Data.Repositories
     {
         User GetUserById(int id);
         Task AddAsync(User user);
+        User GetUserByUsername(string username);
     }
 }

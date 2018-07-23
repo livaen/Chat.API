@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Chat.API.Data.DAL;
 using Chat.API.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chat.API.Data.Repositories
 {
@@ -28,7 +29,12 @@ namespace Chat.API.Data.Repositories
 
         public User GetUserById(int id)
         {
-            throw new NotImplementedException();
+            return _context.users.FirstOrDefault(x => x.Id == id); 
+        }
+
+        public User GetUserByUsername(string username)
+        {
+            return _context.users.FirstOrDefault(x => x.Username == username);
         }
     }
 }
