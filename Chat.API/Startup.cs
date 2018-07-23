@@ -4,12 +4,14 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Chat.API.Areas.Authentication.Helpers;
+using Chat.API.Data.DAL;
 using Chat.API.Extensions;
 using Chat.API.Hubs;
 using Chat.API.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -46,6 +48,10 @@ namespace Chat.API
             services.AddScoped<IJwtHandler, JwtHandler>();
             services.AddSignalR();
             services.AddMvc();
+
+            services.AddEntityFrameworkSqlServer();
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
