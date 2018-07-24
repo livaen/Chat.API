@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Chat.API.Hubs
@@ -15,9 +17,23 @@ namespace Chat.API.Hubs
             Clients.All.SendAsync("sendMessageToAll", name, message);
         }
 
-      /*  public override Task OnConnectedAsync()
+        public override Task OnConnectedAsync()
         {
+            string name = Context.User.Identity.Name;
 
-        }*/
+            _connections.Add(name, Context.ConnectionId);
+
+            return base.OnConnectedAsync();
+        }
+
+        public override Task OnDisconnectedAsync(Exception exception)
+        {
+            string name = Context.User.Identity.Name;
+
+            _connections.Remove(name, Context.ConnectionId);
+            return base.OnDisconnectedAsync(exception);
+        }
+
+
     }
 }

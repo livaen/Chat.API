@@ -56,7 +56,7 @@ namespace Chat.API
                     {
                         OnMessageReceived = context =>
                         {
-                            var accessToken = context.Request.Query["access_token"];
+                            var accessToken = context.Request.Query["token"];
 
                             var path = context.HttpContext.Request.Path;
                             if (!string.IsNullOrEmpty(accessToken) &&
