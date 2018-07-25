@@ -16,7 +16,7 @@ namespace Chat.API.Hubs
         }
         public void Add(T key, string connectionId)
         {
-            lock  (_connections)
+            lock (_connections)
             {
                 HashSet<string> connections;
                 if(!_connections.TryGetValue(key, out connections))
