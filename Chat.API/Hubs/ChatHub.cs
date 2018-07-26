@@ -12,6 +12,18 @@ namespace Chat.API.Hubs
             new ConnectionMapping<string>();
 
         [Authorize]
+        public void SendPrivateMessage(string recipientUsername, string message)
+        {
+            var senderUsername = Context.User.Identity.Name;
+            var clientConnections = _connections.GetConnections(recipientUsername);
+
+            foreach (var clientConnection in clientConnections)
+            {
+                Clients.Client(clientConnection).SendAsync("sendPrivateMessage", senderUsername, message);
+            }
+        }
+
+        [Authorize]
         public void SendMessageToAll(string name, string message)
         {
             Clients.All.SendAsync("sendMessageToAll", name, message);
